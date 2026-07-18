@@ -110,12 +110,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await update.message.reply_text(
             (
-                "🚀 Bienvenido a MINER TRX FREE\n\n"
-                "Gana TRX completando tareas, minería cloud, "
-                "Crypto Mines y ruleta de premios.\n\n"
-                "👥 Invita amigos y recibe automáticamente "
-                "el 15% de sus ganancias.\n\n"
-                "👇 Abre la aplicación para comenzar."
+                "🚀 ¡Bienvenido a MINER TRX FREE!
+
+💎 Mina TRX gratis desde Telegram.
+
+🎮 Disfruta de:
+• ⛏️ Minería Cloud
+• 💣 Crypto Mines
+• 🎡 Ruleta de premios
+• 📋 Tareas diarias
+
+👥 Invita a tus amigos y recibe automáticamente el 15% de sus ganancias.
+
+👇 Pulsa el botón de abajo para abrir la Mini App y comenzar a ganar TRX."
             ),
             reply_markup=keyboard
         )
