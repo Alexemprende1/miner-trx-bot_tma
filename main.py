@@ -1,53 +1,33 @@
 import os
 import logging
 import requests
-
-from dotenv import load_dotenv
-
 from telegram import (
     Update,
-    InlineKeyboardMarkup,
     InlineKeyboardButton,
+    InlineKeyboardMarkup,
     WebAppInfo
 )
-
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    ContextTypes
-)
-
-# ==========================================
-# CARGAR VARIABLES
-# ==========================================
-
-load_dotenv()
-
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-WEBAPP_URL = os.getenv("WEBAPP_URL")
-
-# ==========================================
-# LOGS
-# ==========================================
+from telegram.ext import Application, CommandHandler, ContextTypes
 
 logging.basicConfig(
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    level=logging.INFO
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO,
 )
-
 logger = logging.getLogger(__name__)
 
-# ==========================================
-# SUPABASE RPC
-# ==========================================
+BOT_TOKEN = os.environ["BOT_TOKEN"]
+WEBHOOK_URL = os.environ["WEBHOOK_URL"]
+WEBAPP_URL = os.environ["WEBAPP_URL"]
+SUPABASE_URL = os.environ["SUPABASE_URL"]
+SUPABASE_SERVICE_ROLE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
+PORT = int(os.environ.get("PORT", "10000"))
+
 
 def init_user(
     telegram_id: int,
     username: str,
     first_name: str,
-    referrer_id
+    referrer_id: int | None
 ):
     try:
 
@@ -81,9 +61,6 @@ def init_user(
         logger.error(f"ERROR SUPABASE: {e}")
         return False
 
-# ==========================================
-# START
-# ==========================================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
@@ -104,6 +81,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 possible_referrer = int(context.args[0])
 
                 if possible_referrer != telegram_id:
+
                     referrer_id = possible_referrer
 
                     logger.info(
@@ -143,29 +121,26 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         logger.info(
-            f"Usuario procesado: "
-            f"{telegram_id}"
+            f"Usuario procesado: {telegram_id}"
         )
 
     except Exception as e:
 
         logger.error(f"ERROR START: {e}")
 
-# ==========================================
-# MAIN
-# ==========================================
 
-def main():
-
+def main() -> None:
     app = Application.builder().token(BOT_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
 
-    app.add_handler(
-        CommandHandler("start", start)
+    app.run_webhook(
+        listen="0.0.0.0",
+        port=PORT,
+        url_path=BOT_TOKEN,
+        webhook_url=f"{WEBHOOK_URL}/{BOT_TOKEN}",
+        drop_pending_updates=True,
     )
 
-    logger.info("BOT INICIADO")
-
-    app.run_polling()
 
 if __name__ == "__main__":
     main()
