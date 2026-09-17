@@ -20,6 +20,7 @@ WEBHOOK_URL = os.environ["WEBHOOK_URL"]
 WEBAPP_URL = os.environ["WEBAPP_URL"]
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_SERVICE_ROLE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
+MINING_NOTIFICATIONS_SECRET = os.environ["MINING_NOTIFICATIONS_SECRET"]
 PORT = int(os.environ.get("PORT", "10000"))
 
 
@@ -61,7 +62,41 @@ def init_user(
         logger.error(f"ERROR SUPABASE: {e}")
         return False
 
+def process_mining_notifications():
+    try:
 
+        url = (
+            f"{SUPABASE_URL}/functions/v1/"
+            "mining-telegram-notifications"
+        )
+
+        headers = {
+            "Content-Type": "application/json",
+            "x-mining-notifications-secret":
+                MINING_NOTIFICATIONS_SECRET
+        }
+
+        response = requests.post(
+            url,
+            headers=headers,
+            timeout=30
+        )
+
+        logger.info(
+            f"Mining notifications: "
+            f"{response.status_code} - {response.text}"
+        )
+
+        return response.ok
+
+    except Exception as e:
+
+        logger.error(
+            f"ERROR MINING NOTIFICATIONS: {e}"
+        )
+
+        return False
+        
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
