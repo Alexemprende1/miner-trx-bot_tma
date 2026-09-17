@@ -1,6 +1,7 @@
 import os
 import logging
 import requests
+import asyncio
 from telegram import (
     Update,
     InlineKeyboardButton,
@@ -96,6 +97,24 @@ def process_mining_notifications():
         )
 
         return False
+
+async def mining_notifications_loop():
+
+    while True:
+
+        try:
+
+            await asyncio.to_thread(
+                process_mining_notifications
+            )
+
+        except Exception as e:
+
+            logger.error(
+                f"ERROR EN CICLO DE NOTIFICACIONES: {e}"
+            )
+
+        await asyncio.sleep(60)
         
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
@@ -169,9 +188,26 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"ERROR START: {e}")
 
 
+async def start_background_tasks(
+    application: Application
+):
+    application.create_task(
+        mining_notifications_loop()
+    )
+
+
 def main() -> None:
-    app = Application.builder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
+
+    app = (
+        Application.builder()
+        .token(BOT_TOKEN)
+        .post_init(start_background_tasks)
+        .build()
+    )
+
+    app.add_handler(
+        CommandHandler("start", start)
+    )
 
     app.run_webhook(
         listen="0.0.0.0",
